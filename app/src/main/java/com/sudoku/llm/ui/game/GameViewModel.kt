@@ -71,8 +71,9 @@ class GameViewModel : ViewModel() {
     fun inputNumber(num: Int) {
         val s = _state.value
         if (s.isWon || s.isPaused || s.selectedRow < 0) return
-        val { selectedRow, selectedCol } = s
-        if (s.given[selectedRow][selectedCol]) return
+        val selectedRow = s.selectedRow
+        val selectedCol = s.selectedCol
+        if (selectedRow < 0 || s.given[selectedRow][selectedCol]) return
 
         val newGrid = s.userGrid.map { it.copyOf() }.toTypedArray()
         newGrid[selectedRow][selectedCol] = num
