@@ -21,14 +21,12 @@ fun MenuScreen(
     onDifficultySelected: (Difficulty) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bgColor = if (isDarkTheme) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background
-    val surfaceColor = MaterialTheme.colorScheme.surface
     val primaryColor = MaterialTheme.colorScheme.primary
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(bgColor),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -36,7 +34,6 @@ fun MenuScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp),
             modifier = Modifier.padding(32.dp)
         ) {
-            // Title
             Text(
                 text = "SUDOKU",
                 fontSize = 40.sp,
@@ -44,7 +41,6 @@ fun MenuScreen(
                 color = primaryColor
             )
 
-            // Theme toggle
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -59,7 +55,6 @@ fun MenuScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Difficulty buttons
             Text(
                 "난이도 선택",
                 fontSize = 18.sp,

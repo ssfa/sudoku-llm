@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -37,7 +38,8 @@ class MainActivity : ComponentActivity() {
                             onReset = { viewModel.resetGame() },
                             onTick = { viewModel.tick() },
                             onBack = { showGame = false },
-                            getConflict = { r, c, n -> viewModel.getConflict(r, c, n) }
+                            getConflict = { r, c, n -> viewModel.getConflict(r, c, n) },
+                            modifier = Modifier.systemBarsPadding()
                         )
                     } else {
                         MenuScreen(
@@ -46,7 +48,8 @@ class MainActivity : ComponentActivity() {
                             onDifficultySelected = { diff ->
                                 viewModel.startGame(diff)
                                 showGame = true
-                            }
+                            },
+                            modifier = Modifier.systemBarsPadding()
                         )
                     }
                 }

@@ -13,10 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sudoku.llm.ui.theme.*
 
 @Composable
@@ -28,18 +26,11 @@ fun GameScreen(
     onClear: () -> Unit,
     onTogglePause: () -> Unit,
     onReset: () -> Unit,
-    onTick: () -> Unit,
     onBack: () -> Unit,
+    onTick: () -> Unit,
     getConflict: (Int, Int, Int) -> Boolean,
     modifier: Modifier = Modifier
 ) {
-    LaunchedEffect(Unit) {
-        while (true) {
-            kotlinx.coroutines.delay(1000)
-            onTick()
-        }
-    }
-
     val gridLineColor = if (isDarkTheme) DarkGridLine else LightGridLine
     val gridBoxColor = if (isDarkTheme) DarkGridBox else LightGridBox
     val selectedColor = if (isDarkTheme) DarkSelected else LightSelected
@@ -49,6 +40,16 @@ fun GameScreen(
     val primaryColor = if (isDarkTheme) DarkPrimary else LightPrimary
     val backgroundColor = if (isDarkTheme) DarkBackground else LightBackground
     val surfaceColor = if (isDarkTheme) DarkSurface else LightSurface
+
+    // Timer
+    LaunchedEffect(state.isPaused, state.isWon) {
+        if (!state.isPaused && !state.isWon) {
+            while (true) {
+                kotlinx.coroutines.delay(1000)
+                onTick()
+            }
+        }
+    }
 
     Box(
         modifier = modifier
@@ -78,7 +79,7 @@ fun GameScreen(
                     fontWeight = FontWeight.Bold,
                     color = primaryColor
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     IconBtn("⏸", onTogglePause)
                     IconBtn("🔄", onReset)
                     IconBtn("◀", onBack)
@@ -87,66 +88,73 @@ fun GameScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Sudoku grid
+            // Sudoku grid — no outer border, cell borders only
             Box(
                 modifier = Modifier
                     .aspectRatio(1f)
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(4.dp))
                     .background(surfaceColor)
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    for (boxRow in 0..2) {
+                    for (row in 0..8) {
                         Row(modifier = Modifier.weight(1f)) {
-                            for (boxCol in 0..2) {
-                                Column(
+                            for (col in 0..8) {
+                                val isSelected = state.selectedRow == row && state.selectedCol == col
+                                val num = state.userGrid[row][col]
+                                val isGiven = state.given[row][col]
+                                val isConflict = num != 0 && getConflict(row, col, num)
+
+                                val cellBg = when {
+                                    isConflict -> conflictColor
+                                    isSelected -> selectedColor
+                                    else -> Color.Transparent
+                                }
+
+                                // Border: thick on box edges, thin otherwise
+                                val isBoxRight = col < 8 && (col + 1) % 3 == 0
+                                val isBoxBottom = row < 8 && (row + 1) % 3 == 0
+                                val isInnerRight = col < 8 && (col + 1) % 3 != 0
+                                val isInnerBottom = row < 8 && (row + 1) % 3 != 0
+                                val borderColor = when {
+                                    isBoxRight || isBoxBottom -> gridBoxColor
+                                    isInnerRight || isInnerBottom -> gridLineColor
+                                    else -> Color.Transparent
+                                }
+                                val rightW = when {
+                                    col == 8 -> 0.dp
+                                    isBoxRight -> 2.dp
+                                    isInnerRight -> 0.5.dp
+                                    else -> 0.dp
+                                }
+                                val bottomW = when {
+                                    row == 8 -> 0.dp
+                                    isBoxBottom -> 2.dp
+                                    isInnerBottom -> 0.5.dp
+                                    else -> 0.dp
+                                }
+
+                                Box(
                                     modifier = Modifier
                                         .weight(1f)
                                         .fillMaxHeight()
+                                        .background(cellBg)
+                                        .border(rightW, borderColor)
+                                        .border(bottomW, borderColor)
+                                        .clickable { onCellSelect(row, col) },
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    for (cellRow in 0..2) {
-                                        val row = boxRow * 3 + cellRow
-                                        Row(modifier = Modifier.weight(1f)) {
-                                            for (cellCol in 0..2) {
-                                                val col = boxCol * 3 + cellCol
-                                                val isSelected = state.selectedRow == row && state.selectedCol == col
-                                                val num = state.userGrid[row][col]
-                                                val isGiven = state.given[row][col]
-                                                val isConflict = num != 0 && getConflict(row, col, num)
-
-                                                val cellBg = when {
-                                                    isConflict -> conflictColor
-                                                    isSelected -> selectedColor
-                                                    else -> Color.Transparent
-                                                }
-
-                                                Box(
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .fillMaxHeight()
-                                                        .background(cellBg)
-                                                        .clickable { onCellSelect(row, col) }
-                                                        .border(
-                                                            width = if ((col + 1) % 3 == 0 && col < 8) 1.5.dp else 0.5.dp,
-                                                            color = if ((col + 1) % 3 == 0 && col < 8) gridBoxColor else gridLineColor
-                                                        ),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    if (num != 0) {
-                                                        Text(
-                                                            text = num.toString(),
-                                                            fontSize = 22.sp,
-                                                            fontWeight = if (isGiven) FontWeight.Bold else FontWeight.Normal,
-                                                            color = when {
-                                                                isConflict -> conflictColor
-                                                                isGiven -> givenColor
-                                                                else -> filledColor
-                                                            }
-                                                        )
-                                                    }
-                                                }
+                                    if (num != 0) {
+                                        Text(
+                                            text = num.toString(),
+                                            fontSize = 22.sp,
+                                            fontWeight = if (isGiven) FontWeight.Bold else FontWeight.Normal,
+                                            color = when {
+                                                isConflict -> conflictColor
+                                                isGiven -> givenColor
+                                                else -> filledColor
                                             }
-                                        }
+                                        )
                                     }
                                 }
                             }
@@ -154,16 +162,6 @@ fun GameScreen(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Bottom border decoration for grid
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.5.dp)
-                    .background(gridBoxColor)
-            )
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -216,7 +214,6 @@ private fun NumberPad(
     surfaceColor: Color
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        // Row 1-3: 1-9
         for (row in 0..2) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (col in 1..3) {
@@ -225,7 +222,6 @@ private fun NumberPad(
                 }
             }
         }
-        // Row 4: clear + 0 (not used) - just clear
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             NumButton(0, primaryColor, surfaceColor, label = "✕") { onClear() }
             Spacer(modifier = Modifier.weight(1f))
