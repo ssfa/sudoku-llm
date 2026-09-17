@@ -1,7 +1,7 @@
 package com.sudoku.llm.ui.game
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -11,7 +11,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,12 +43,14 @@ fun GameScreen(
     val backgroundColor = if (isDarkTheme) DarkBackground else LightBackground
     val surfaceColor = if (isDarkTheme) DarkSurface else LightSurface
 
-    // Timer
-    LaunchedEffect(state.isPaused, state.isWon) {
-        if (!state.isPaused && !state.isWon) {
-            while (true) {
-                kotlinx.coroutines.delay(1000)
-                onTick()
+    // Timer — recompose when pause/win state changes to restart/stop loop
+    key(state.isPaused, state.isWon) {
+        LaunchedEffect(Unit) {
+            if (!state.isPaused && !state.isWon) {
+                while (true) {
+                    kotlinx.coroutines.delay(1000)
+                    onTick()
+                }
             }
         }
     }
@@ -88,7 +92,7 @@ fun GameScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Sudoku grid — no outer border, cell borders only
+            // Sudoku grid — Canvas for clean borders, no overlap
             Box(
                 modifier = Modifier
                     .aspectRatio(1f)
@@ -96,6 +100,7 @@ fun GameScreen(
                     .clip(RoundedCornerShape(4.dp))
                     .background(surfaceColor)
             ) {
+                // Cell numbers layer (behind grid lines)
                 Column(modifier = Modifier.fillMaxSize()) {
                     for (row in 0..8) {
                         Row(modifier = Modifier.weight(1f)) {
@@ -111,46 +116,21 @@ fun GameScreen(
                                     else -> Color.Transparent
                                 }
 
-                                // Border: thick on box edges, thin otherwise
-                                val isBoxRight = col < 8 && (col + 1) % 3 == 0
-                                val isBoxBottom = row < 8 && (row + 1) % 3 == 0
-                                val isInnerRight = col < 8 && (col + 1) % 3 != 0
-                                val isInnerBottom = row < 8 && (row + 1) % 3 != 0
-                                val borderColor = when {
-                                    isBoxRight || isBoxBottom -> gridBoxColor
-                                    isInnerRight || isInnerBottom -> gridLineColor
-                                    else -> Color.Transparent
-                                }
-                                val rightW = when {
-                                    col == 8 -> 0.dp
-                                    isBoxRight -> 2.dp
-                                    isInnerRight -> 0.5.dp
-                                    else -> 0.dp
-                                }
-                                val bottomW = when {
-                                    row == 8 -> 0.dp
-                                    isBoxBottom -> 2.dp
-                                    isInnerBottom -> 0.5.dp
-                                    else -> 0.dp
-                                }
-
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
                                         .fillMaxHeight()
                                         .background(cellBg)
-                                        .border(rightW, borderColor)
-                                        .border(bottomW, borderColor)
                                         .clickable { onCellSelect(row, col) },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (num != 0) {
                                         Text(
                                             text = num.toString(),
-                                            fontSize = 22.sp,
+                                            fontSize = 20.sp,
                                             fontWeight = if (isGiven) FontWeight.Bold else FontWeight.Normal,
                                             color = when {
-                                                isConflict -> conflictColor
+                                                isConflict -> Color.White
                                                 isGiven -> givenColor
                                                 else -> filledColor
                                             }
@@ -159,6 +139,34 @@ fun GameScreen(
                                 }
                             }
                         }
+                    }
+                }
+
+                // Grid lines layer (on top via Canvas)
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val cellW = size.width / 9
+                    val cellH = size.height / 9
+
+                    // Thin inner grid lines
+                    for (i in 1..8) {
+                        val isThick = i % 3 == 0
+                        val color = if (isThick) gridBoxColor else gridLineColor
+                        val strokeWidth = if (isThick) 2.dp.toPx() else 0.5.dp.toPx()
+
+                        // Vertical line at column i
+                        drawLine(
+                            color = color,
+                            start = Offset(i * cellW, 0f),
+                            end = Offset(i * cellW, size.height),
+                            strokeWidth = strokeWidth
+                        )
+                        // Horizontal line at row i
+                        drawLine(
+                            color = color,
+                            start = Offset(0f, i * cellH),
+                            end = Offset(size.width, i * cellH),
+                            strokeWidth = strokeWidth
+                        )
                     }
                 }
             }
