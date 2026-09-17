@@ -1,74 +1,90 @@
 package com.sudoku.llm.ui.game
 
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
+import org.junit.Test
+import org.junit.Assert.*
 
-fun main() {
-    println("Running SudokuGenerator tests...")
+class SudokuGeneratorTest {
 
-    // Test: generated puzzle has correct given count per difficulty
-    for (diff in Difficulty.entries) {
-        val puzzle = SudokuGenerator.generate(diff)
-        val givenCount = puzzle.sumOf { row -> row.count { it != 0 } }
-        println("  ${diff.label}: ${givenCount} given cells (expected ${diff.givenCount})")
-        assertEquals(diff.givenCount, givenCount, "Given count mismatch for ${diff.label}")
-    }
-
-    // Test: solution is complete (no zeros)
-    for (diff in Difficulty.entries) {
-        val puzzle = SudokuGenerator.generate(diff)
-        val solution = SudokuGenerator.getSolution(puzzle)
-        for (r in 0..8) {
-            for (c in 0..8) {
-                assertTrue(solution[r][c] in 1..9, "Solution cell [$r][$c] is ${solution[r][c]}, expected 1-9")
-            }
+    @Test
+    fun givenCount_matchesDifficulty() {
+        for (diff in Difficulty.entries) {
+            val puzzle = SudokuGenerator.generate(diff)
+            val givenCount = puzzle.sumOf { row -> row.count { it != 0 } }
+            assertEquals("Given count mismatch for ${diff.label}", diff.givenCount, givenCount)
         }
     }
 
-    // Test: puzzle + solution match on given cells
-    for (diff in Difficulty.entries) {
-        val puzzle = SudokuGenerator.generate(diff)
-        val solution = SudokuGenerator.getSolution(puzzle)
-        for (r in 0..8) {
-            for (c in 0..8) {
-                if (puzzle[r][c] != 0) {
-                    assertEquals(puzzle[r][c], solution[r][c], "Given cell mismatch at [$r][$c]")
+    @Test
+    fun solution_isComplete() {
+        for (diff in Difficulty.entries) {
+            val puzzle = SudokuGenerator.generate(diff)
+            val solution = SudokuGenerator.getSolution(puzzle)
+            for (r in 0..8) {
+                for (c in 0..8) {
+                    assertTrue("Solution cell [$r][$c] out of range", solution[r][c] in 1..9)
                 }
             }
         }
     }
 
-    // Test: solution has valid Sudoku rules (no duplicates in rows/cols/boxes)
-    for (diff in Difficulty.entries) {
-        val puzzle = SudokuGenerator.generate(diff)
-        val solution = SudokuGenerator.getSolution(puzzle)
-        for (r in 0..8) {
-            val rowNums = solution[r].toList()
-            assertEquals(9, rowNums.toSet().size, "Duplicate in row $r")
-        }
-        for (c in 0..8) {
-            val colNums = (0..8).map { solution[it][c] }
-            assertEquals(9, colNums.toSet().size, "Duplicate in col $c")
-        }
-        for (boxR in 0..2) {
-            for (boxC in 0..2) {
-                val boxNums = mutableListOf<Int>()
-                for (dr in 0..2) for (dc in 0..2) {
-                    boxNums.add(solution[boxR * 3 + dr][boxC * 3 + dc])
+    @Test
+    fun givenCells_matchSolution() {
+        for (diff in Difficulty.entries) {
+            val puzzle = SudokuGenerator.generate(diff)
+            val solution = SudokuGenerator.getSolution(puzzle)
+            for (r in 0..8) {
+                for (c in 0..8) {
+                    if (puzzle[r][c] != 0) {
+                        assertEquals("Given cell mismatch at [$r][$c]", puzzle[r][c], solution[r][c])
+                    }
                 }
-                assertEquals(9, boxNums.toSet().size, "Duplicate in box ($boxR,$boxC)")
             }
         }
     }
 
-    // Test: different calls produce different puzzles
-    val p1 = SudokuGenerator.generate(Difficulty.EASY)
-    val p2 = SudokuGenerator.generate(Difficulty.EASY)
-    assertNotEquals(p1.contentDeepToString(), p2.contentDeepToString(), "Two generated puzzles should differ")
+    @Test
+    fun solution_hasNoDuplicateInRows() {
+        for (diff in Difficulty.entries) {
+            val solution = SudokuGenerator.getSolution(SudokuGenerator.generate(diff))
+            for (r in 0..8) {
+                assertEquals("Duplicate in row $r", 9, solution[r].toSet().size)
+            }
+        }
+    }
 
-    println("  All SudokuGenerator tests passed!")
+    @Test
+    fun solution_hasNoDuplicateInCols() {
+        for (diff in Difficulty.entries) {
+            val solution = SudokuGenerator.getSolution(SudokuGenerator.generate(diff))
+            for (c in 0..8) {
+                val colNums = (0..8).map { solution[it][c] }
+                assertEquals("Duplicate in col $c", 9, colNums.toSet().size)
+            }
+        }
+    }
+
+    @Test
+    fun solution_hasNoDuplicateInBoxes() {
+        for (diff in Difficulty.entries) {
+            val solution = SudokuGenerator.getSolution(SudokuGenerator.generate(diff))
+            for (boxR in 0..2) {
+                for (boxC in 0..2) {
+                    val boxNums = mutableListOf<Int>()
+                    for (dr in 0..2) for (dc in 0..2) {
+                        boxNums.add(solution[boxR * 3 + dr][boxC * 3 + dc])
+                    }
+                    assertEquals("Duplicate in box ($boxR,$boxC)", 9, boxNums.toSet().size)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun generate_producesDifferentPuzzles() {
+        val p1 = SudokuGenerator.generate(Difficulty.EASY)
+        val p2 = SudokuGenerator.generate(Difficulty.EASY)
+        assertNotEquals(p1.contentDeepToString(), p2.contentDeepToString())
+    }
 }
 
 private fun Array<IntArray>.contentDeepToString(): String = joinToString { it.joinToString() }
