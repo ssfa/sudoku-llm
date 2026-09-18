@@ -1,4 +1,4 @@
-package com.sudoku.llm
+package ssfa.sudoku.llm
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
