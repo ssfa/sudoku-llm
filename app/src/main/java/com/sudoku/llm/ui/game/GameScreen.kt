@@ -43,8 +43,8 @@ fun GameScreen(
     val backgroundColor = if (isDarkTheme) DarkBackground else LightBackground
     val surfaceColor = if (isDarkTheme) DarkSurface else LightSurface
 
-    // Timer — recompose when pause/win state changes to restart/stop loop
-    key(state.isPaused, state.isWon) {
+    // Timer — restart loop when game starts / unpauses / resets (key must change each start)
+    key(state.elapsedSeconds, state.isPaused, state.isWon) {
         LaunchedEffect(Unit) {
             if (!state.isPaused && !state.isWon) {
                 while (true) {
