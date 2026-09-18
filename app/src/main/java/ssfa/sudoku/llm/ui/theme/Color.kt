@@ -1,4 +1,4 @@
-package com.sudoku.llm.ui.theme
+package ssfa.sudoku.llm.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,4 +1,4 @@
-package com.sudoku.llm.ui.menu
+package ssfa.sudoku.llm.ui.menu
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

@@ -1,4 +1,4 @@
-package com.sudoku.llm.ui.game
+package ssfa.sudoku.llm.ui.game
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

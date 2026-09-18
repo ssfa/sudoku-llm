@@ -10,10 +10,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sudoku.llm.ui.game.GameScreen
-import com.sudoku.llm.ui.game.GameViewModel
-import com.sudoku.llm.ui.menu.MenuScreen
-import com.sudoku.llm.ui.theme.SudokuTheme
+import ssfa.sudoku.llm.ui.game.GameScreen
+import ssfa.sudoku.llm.ui.game.GameViewModel
+import ssfa.sudoku.llm.ui.menu.MenuScreen
+import ssfa.sudoku.llm.ui.theme.SudokuTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

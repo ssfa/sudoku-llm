@@ -1,4 +1,4 @@
-package com.sudoku.llm.ui.game
+package ssfa.sudoku.llm.ui.game
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -17,7 +17,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sudoku.llm.ui.theme.*
+import ssfa.sudoku.llm.ui.game.GameState
+import ssfa.sudoku.llm.ui.theme.*
 
 @Composable
 fun GameScreen(

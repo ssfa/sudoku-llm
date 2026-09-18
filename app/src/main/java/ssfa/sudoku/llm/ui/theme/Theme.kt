@@ -1,4 +1,4 @@
-package com.sudoku.llm.ui.theme
+package ssfa.sudoku.llm.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
