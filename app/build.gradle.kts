@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.sudoku.llm"
+    namespace = "ssfa.sudoku.llm"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.sudoku.llm"
+        applicationId = "ssfa.sudoku.llm"
         minSdk = 26
         targetSdk = 34
         versionCode = 5
