@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "ssfa.sudoku.llm"
-        minSdk = 26
+        minSdk = 24
         targetSdk = 34
         versionCode = 6
         versionName = "1.1.4"
@@ -20,6 +20,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            isMinifyEnabled = false
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
